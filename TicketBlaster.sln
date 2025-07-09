@@ -1,0 +1,93 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketBlaster.Server", "TicketBlaster.Server\TicketBlaster.Server.csproj", "{A1B2C3D4-1234-5678-9ABC-DEF123456789}"
+EndProject
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketBlaster.Client", "TicketBlaster.Client\TicketBlaster.Client.csproj", "{B2C3D4E5-2345-6789-ABCD-EF123456789A}"
+EndProject
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketBlaster.Shared", "TicketBlaster.Shared\TicketBlaster.Shared.csproj", "{C3D4E5F6-3456-789A-BCDE-F123456789AB}"
+EndProject
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketBlaster.Database", "TicketBlaster.Database\TicketBlaster.Database.csproj", "{D4E5F6G7-4567-89AB-CDEF-123456789ABC}"
+EndProject
+
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{E5F6G7H8-5678-9ABC-DEF1-23456789ABCD}"
+EndProject
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketBlaster.Modules.Events", "TicketBlaster.Modules\Events\TicketBlaster.Modules.Events.csproj", "{F6G7H8I9-6789-ABCD-EF12-3456789ABCDE}"
+EndProject
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketBlaster.Modules.Ticketing", "TicketBlaster.Modules\Ticketing\TicketBlaster.Modules.Ticketing.csproj", "{G7H8I9J0-789A-BCDE-F123-456789ABCDEF}"
+EndProject
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketBlaster.Modules.Payments", "TicketBlaster.Modules\Payments\TicketBlaster.Modules.Payments.csproj", "{H8I9J0K1-89AB-CDEF-1234-56789ABCDEF0}"
+EndProject
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketBlaster.Modules.Analytics", "TicketBlaster.Modules\Analytics\TicketBlaster.Modules.Analytics.csproj", "{I9J0K1L2-9ABC-DEF1-2345-6789ABCDEF01}"
+EndProject
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketBlaster.Modules.Authentication", "TicketBlaster.Modules\Authentication\TicketBlaster.Modules.Authentication.csproj", "{J0K1L2M3-ABCD-EF12-3456-789ABCDEF012}"
+EndProject
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketBlaster.Tests", "TicketBlaster.Tests\TicketBlaster.Tests.csproj", "{K1L2M3N4-BCDE-F123-4567-89ABCDEF0123}"
+EndProject
+
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1B2C3D4-1234-5678-9ABC-DEF123456789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-1234-5678-9ABC-DEF123456789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-1234-5678-9ABC-DEF123456789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-1234-5678-9ABC-DEF123456789}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2C3D4E5-2345-6789-ABCD-EF123456789A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2C3D4E5-2345-6789-ABCD-EF123456789A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2C3D4E5-2345-6789-ABCD-EF123456789A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2C3D4E5-2345-6789-ABCD-EF123456789A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3D4E5F6-3456-789A-BCDE-F123456789AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3D4E5F6-3456-789A-BCDE-F123456789AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3D4E5F6-3456-789A-BCDE-F123456789AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3D4E5F6-3456-789A-BCDE-F123456789AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4E5F6G7-4567-89AB-CDEF-123456789ABC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4E5F6G7-4567-89AB-CDEF-123456789ABC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4E5F6G7-4567-89AB-CDEF-123456789ABC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4E5F6G7-4567-89AB-CDEF-123456789ABC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6G7H8I9-6789-ABCD-EF12-3456789ABCDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6G7H8I9-6789-ABCD-EF12-3456789ABCDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6G7H8I9-6789-ABCD-EF12-3456789ABCDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6G7H8I9-6789-ABCD-EF12-3456789ABCDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{G7H8I9J0-789A-BCDE-F123-456789ABCDEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{G7H8I9J0-789A-BCDE-F123-456789ABCDEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{G7H8I9J0-789A-BCDE-F123-456789ABCDEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{G7H8I9J0-789A-BCDE-F123-456789ABCDEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{H8I9J0K1-89AB-CDEF-1234-56789ABCDEF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{H8I9J0K1-89AB-CDEF-1234-56789ABCDEF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{H8I9J0K1-89AB-CDEF-1234-56789ABCDEF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{H8I9J0K1-89AB-CDEF-1234-56789ABCDEF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{I9J0K1L2-9ABC-DEF1-2345-6789ABCDEF01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{I9J0K1L2-9ABC-DEF1-2345-6789ABCDEF01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{I9J0K1L2-9ABC-DEF1-2345-6789ABCDEF01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{I9J0K1L2-9ABC-DEF1-2345-6789ABCDEF01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{J0K1L2M3-ABCD-EF12-3456-789ABCDEF012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{J0K1L2M3-ABCD-EF12-3456-789ABCDEF012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{J0K1L2M3-ABCD-EF12-3456-789ABCDEF012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{J0K1L2M3-ABCD-EF12-3456-789ABCDEF012}.Release|Any CPU.Build.0 = Release|Any CPU
+		{K1L2M3N4-BCDE-F123-4567-89ABCDEF0123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{K1L2M3N4-BCDE-F123-4567-89ABCDEF0123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{K1L2M3N4-BCDE-F123-4567-89ABCDEF0123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{K1L2M3N4-BCDE-F123-4567-89ABCDEF0123}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F6G7H8I9-6789-ABCD-EF12-3456789ABCDE} = {E5F6G7H8-5678-9ABC-DEF1-23456789ABCD}
+		{G7H8I9J0-789A-BCDE-F123-456789ABCDEF} = {E5F6G7H8-5678-9ABC-DEF1-23456789ABCD}
+		{H8I9J0K1-89AB-CDEF-1234-56789ABCDEF0} = {E5F6G7H8-5678-9ABC-DEF1-23456789ABCD}
+		{I9J0K1L2-9ABC-DEF1-2345-6789ABCDEF01} = {E5F6G7H8-5678-9ABC-DEF1-23456789ABCD}
+		{J0K1L2M3-ABCD-EF12-3456-789ABCDEF012} = {E5F6G7H8-5678-9ABC-DEF1-23456789ABCD}
+	EndGlobalSection
+EndGlobal
