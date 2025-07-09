@@ -1,4 +1,4 @@
-# TicketBlaster - Event Ticketing Platform
+# TicketBlaster - Open-Source Ticketing Platform
 
 A comprehensive event ticketing platform built with Oqtane 6.1.3+ and ASP.NET Core 8, featuring Keycloak authentication and Stripe payment processing.
 
