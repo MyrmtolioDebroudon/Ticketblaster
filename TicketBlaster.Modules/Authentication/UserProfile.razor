@@ -1,0 +1,356 @@
+@page "/profile"
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.ComponentModel.DataAnnotations
+@attribute [Authorize]
+@inject IAuthenticationService AuthService
+@inject IToastService ToastService
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <h2 class="mb-4">My Profile</h2>
+
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (profile != null)
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <EditForm Model="profile" OnValidSubmit="HandleUpdateProfile">
+                            <DataAnnotationsValidator />
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="firstName" class="form-label">First Name</label>
+                                    <InputText id="firstName" class="form-control" @bind-Value="profile.FirstName" />
+                                    <ValidationMessage For="@(() => profile.FirstName)" />
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="lastName" class="form-label">Last Name</label>
+                                    <InputText id="lastName" class="form-control" @bind-Value="profile.LastName" />
+                                    <ValidationMessage For="@(() => profile.LastName)" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <InputText id="email" class="form-control" @bind-Value="profile.Email" />
+                                <ValidationMessage For="@(() => profile.Email)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <InputText id="phone" class="form-control" @bind-Value="profile.PhoneNumber" />
+                                <ValidationMessage For="@(() => profile.PhoneNumber)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                                <InputDate id="dateOfBirth" class="form-control" @bind-Value="profile.DateOfBirth" />
+                            </div>
+
+                            <hr class="my-4" />
+
+                            <h4>Professional Information</h4>
+                            
+                            <div class="mb-3">
+                                <label for="company" class="form-label">Company</label>
+                                <InputText id="company" class="form-control" @bind-Value="profile.Company" />
+                                <ValidationMessage For="@(() => profile.Company)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="jobTitle" class="form-label">Job Title</label>
+                                <InputText id="jobTitle" class="form-control" @bind-Value="profile.JobTitle" />
+                                <ValidationMessage For="@(() => profile.JobTitle)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="website" class="form-label">Website</label>
+                                <InputText id="website" class="form-control" @bind-Value="profile.Website" placeholder="https://example.com" />
+                                <ValidationMessage For="@(() => profile.Website)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="bio" class="form-label">Bio</label>
+                                <InputTextArea id="bio" class="form-control" @bind-Value="profile.Bio" rows="4" />
+                                <ValidationMessage For="@(() => profile.Bio)" />
+                            </div>
+
+                            <hr class="my-4" />
+
+                            <h4>Preferences</h4>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="timezone" class="form-label">Time Zone</label>
+                                    <InputSelect id="timezone" class="form-control" @bind-Value="profile.TimeZone">
+                                        <option value="UTC">UTC</option>
+                                        <option value="America/New_York">Eastern Time</option>
+                                        <option value="America/Chicago">Central Time</option>
+                                        <option value="America/Denver">Mountain Time</option>
+                                        <option value="America/Los_Angeles">Pacific Time</option>
+                                    </InputSelect>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="language" class="form-label">Language</label>
+                                    <InputSelect id="language" class="form-control" @bind-Value="profile.Language">
+                                        <option value="en">English</option>
+                                        <option value="es">Spanish</option>
+                                        <option value="fr">French</option>
+                                        <option value="de">German</option>
+                                    </InputSelect>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="currency" class="form-label">Currency</label>
+                                    <InputSelect id="currency" class="form-control" @bind-Value="profile.Currency">
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                        <option value="GBP">GBP</option>
+                                        <option value="CAD">CAD</option>
+                                    </InputSelect>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                    @if (isSaving)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        <span>Saving...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Save Changes</span>
+                                    }
+                                </button>
+
+                                @if (!isOrganizer)
+                                {
+                                    <button type="button" class="btn btn-secondary" @onclick="ShowBecomeOrganizerModal">
+                                        Become an Organizer
+                                    </button>
+                                }
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+
+                @if (userRoles.Any())
+                {
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <h4>My Roles</h4>
+                            <div class="mt-3">
+                                @foreach (var role in userRoles)
+                                {
+                                    <span class="badge bg-primary me-2">@role</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Become Organizer Modal -->
+<div class="modal fade" id="becomeOrganizerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Become an Event Organizer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>As an organizer, you'll be able to:</p>
+                <ul>
+                    <li>Create and manage events</li>
+                    <li>Sell tickets</li>
+                    <li>Track sales and analytics</li>
+                    <li>Manage attendees</li>
+                </ul>
+                <p>Please ensure your profile information is complete before proceeding.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="BecomeOrganizer">
+                    Proceed
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ProfileModel? profile;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private bool isOrganizer = false;
+    private List<string> userRoles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+        await LoadRoles();
+    }
+
+    private async Task LoadProfile()
+    {
+        try
+        {
+            isLoading = true;
+            var userProfile = await AuthService.GetUserProfileAsync();
+            
+            if (userProfile != null)
+            {
+                profile = new ProfileModel
+                {
+                    FirstName = userProfile.FirstName,
+                    LastName = userProfile.LastName,
+                    Email = userProfile.Email,
+                    PhoneNumber = userProfile.PhoneNumber ?? string.Empty,
+                    DateOfBirth = userProfile.DateOfBirth,
+                    Company = userProfile.Company ?? string.Empty,
+                    JobTitle = userProfile.JobTitle ?? string.Empty,
+                    Website = userProfile.Website ?? string.Empty,
+                    Bio = userProfile.Bio ?? string.Empty,
+                    TimeZone = userProfile.TimeZone,
+                    Language = userProfile.Language,
+                    Currency = userProfile.Currency
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("Failed to load profile");
+            Console.Error.WriteLine($"Error loading profile: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadRoles()
+    {
+        try
+        {
+            userRoles = await AuthService.GetUserRolesAsync();
+            isOrganizer = userRoles.Contains("Organizer");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading roles: {ex.Message}");
+        }
+    }
+
+    private async Task HandleUpdateProfile()
+    {
+        if (profile == null) return;
+
+        try
+        {
+            isSaving = true;
+            
+            var userProfile = new UserProfile
+            {
+                FirstName = profile.FirstName,
+                LastName = profile.LastName,
+                Email = profile.Email,
+                PhoneNumber = profile.PhoneNumber,
+                DateOfBirth = profile.DateOfBirth,
+                Company = profile.Company,
+                JobTitle = profile.JobTitle,
+                Website = profile.Website,
+                Bio = profile.Bio,
+                TimeZone = profile.TimeZone,
+                Language = profile.Language,
+                Currency = profile.Currency
+            };
+
+            var success = await AuthService.UpdateUserProfileAsync(userProfile);
+            
+            if (success)
+            {
+                ToastService.ShowSuccess("Profile updated successfully");
+            }
+            else
+            {
+                ToastService.ShowError("Failed to update profile");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("An error occurred while updating profile");
+            Console.Error.WriteLine($"Error updating profile: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void ShowBecomeOrganizerModal()
+    {
+        // This would typically use a proper modal service
+        // For now, using Bootstrap's modal via JS interop would be needed
+        ToastService.ShowInfo("Become Organizer feature coming soon!");
+    }
+
+    private async Task BecomeOrganizer()
+    {
+        // This would call the become-organizer endpoint
+        ToastService.ShowInfo("Become Organizer feature coming soon!");
+    }
+
+    private class ProfileModel
+    {
+        [Required]
+        [StringLength(50)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(50)]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Phone]
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        public DateTime? DateOfBirth { get; set; }
+
+        [StringLength(100)]
+        public string Company { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        public string JobTitle { get; set; } = string.Empty;
+
+        [Url]
+        [StringLength(500)]
+        public string Website { get; set; } = string.Empty;
+
+        [StringLength(1000)]
+        public string Bio { get; set; } = string.Empty;
+
+        public string TimeZone { get; set; } = "UTC";
+        
+        public string Language { get; set; } = "en";
+        
+        public string Currency { get; set; } = "USD";
+    }
+}

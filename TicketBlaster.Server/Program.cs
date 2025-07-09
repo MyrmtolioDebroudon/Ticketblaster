@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using TicketBlaster.Database;
 using TicketBlaster.Server.Services;
 using TicketBlaster.Server.Infrastructure;
+using TicketBlaster.Shared.Models;
 using Oqtane.Infrastructure;
 using Oqtane.Repository;
 using Oqtane.Security;
@@ -80,6 +81,17 @@ builder.Services.AddFluentValidationAutoValidation();
 // Add Stripe services
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 
+// Add HTTP client for Keycloak service
+builder.Services.AddHttpClient<IKeycloakService, KeycloakService>(client =>
+{
+    var authority = builder.Configuration["Keycloak:Authority"];
+    if (!string.IsNullOrEmpty(authority))
+    {
+        var baseUrl = new Uri(authority).GetLeftPart(UriPartial.Authority);
+        client.BaseAddress = new Uri(baseUrl);
+    }
+});
+
 // Add our custom services
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
@@ -87,7 +99,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IKeycloakService, KeycloakService>();
+// KeycloakService is registered via AddHttpClient above
 
 // Add HTTP client for external API calls
 builder.Services.AddHttpClient();
@@ -121,6 +133,32 @@ builder.Services.AddSwaggerGen(options =>
         Title = "TicketBlaster API",
         Version = "v1",
         Description = "Event ticketing platform API"
+    });
+
+    // Add JWT authentication to Swagger
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Please enter JWT token",
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[]{}
+        }
     });
 });
 
@@ -177,7 +215,19 @@ using (var scope = app.Services.CreateScope())
     try
     {
         context.Database.EnsureCreated();
-        Log.Information("Database created successfully");
+        
+        // Seed default roles if they don't exist
+        if (!context.Roles.Any())
+        {
+            context.Roles.AddRange(
+                new Role { Name = "Admin", Description = "System Administrator", IsActive = true },
+                new Role { Name = "Organizer", Description = "Event Organizer", IsActive = true },
+                new Role { Name = "Customer", Description = "Customer", IsActive = true }
+            );
+            await context.SaveChangesAsync();
+        }
+        
+        Log.Information("Database created and seeded successfully");
     }
     catch (Exception ex)
     {

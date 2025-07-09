@@ -1,0 +1,194 @@
+@page "/register"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager NavigationManager
+@inject IAuthenticationService AuthService
+@inject IToastService ToastService
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow mt-5">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Create Account</h3>
+                    
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @errorMessage
+                            <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+                        </div>
+                    }
+
+                    @if (registrationSuccess)
+                    {
+                        <div class="alert alert-success" role="alert">
+                            <h5 class="alert-heading">Registration Successful!</h5>
+                            <p>Please check your email to verify your account.</p>
+                            <hr>
+                            <p class="mb-0">You can <a href="/login" class="alert-link">sign in</a> once your email is verified.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+                            <DataAnnotationsValidator />
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="firstName" class="form-label">First Name</label>
+                                    <InputText id="firstName" class="form-control" @bind-Value="registerModel.FirstName" placeholder="First name" />
+                                    <ValidationMessage For="@(() => registerModel.FirstName)" />
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="lastName" class="form-label">Last Name</label>
+                                    <InputText id="lastName" class="form-control" @bind-Value="registerModel.LastName" placeholder="Last name" />
+                                    <ValidationMessage For="@(() => registerModel.LastName)" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <InputText id="email" class="form-control" @bind-Value="registerModel.Email" placeholder="Enter your email" />
+                                <ValidationMessage For="@(() => registerModel.Email)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number (Optional)</label>
+                                <InputText id="phone" class="form-control" @bind-Value="registerModel.PhoneNumber" placeholder="Enter your phone number" />
+                                <ValidationMessage For="@(() => registerModel.PhoneNumber)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <InputText id="password" type="password" class="form-control" @bind-Value="registerModel.Password" placeholder="Create a password" />
+                                <ValidationMessage For="@(() => registerModel.Password)" />
+                                <small class="form-text text-muted">
+                                    Password must be at least 8 characters with uppercase, lowercase, number and special character.
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                <InputText id="confirmPassword" type="password" class="form-control" @bind-Value="registerModel.ConfirmPassword" placeholder="Confirm your password" />
+                                <ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
+                            </div>
+
+                            <div class="mb-3 form-check">
+                                <InputCheckbox id="agreeTerms" class="form-check-input" @bind-Value="registerModel.AgreeToTerms" />
+                                <label class="form-check-label" for="agreeTerms">
+                                    I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>
+                                </label>
+                                <ValidationMessage For="@(() => registerModel.AgreeToTerms)" />
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                                    @if (isLoading)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        <span>Creating Account...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Create Account</span>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+
+                        <hr class="my-4" />
+
+                        <div class="text-center">
+                            <p class="mb-0">Already have an account? <a href="/login" class="text-decoration-none">Sign In</a></p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterModel registerModel = new();
+    private bool isLoading = false;
+    private string errorMessage = string.Empty;
+    private bool registrationSuccess = false;
+
+    protected override void OnInitialized()
+    {
+        // If user is already authenticated, redirect
+        if (AuthService.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    private async Task HandleRegister()
+    {
+        isLoading = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            var result = await AuthService.RegisterAsync(
+                registerModel.Email,
+                registerModel.Password,
+                registerModel.FirstName,
+                registerModel.LastName,
+                registerModel.PhoneNumber);
+            
+            if (result.Success)
+            {
+                registrationSuccess = true;
+                ToastService.ShowSuccess("Registration successful! Please check your email.");
+            }
+            else
+            {
+                errorMessage = result.ErrorMessage ?? "Registration failed. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred. Please try again.";
+            Console.Error.WriteLine($"Registration error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private class RegisterModel
+    {
+        [Required(ErrorMessage = "First name is required.")]
+        [StringLength(50, ErrorMessage = "First name must be less than 50 characters.")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required.")]
+        [StringLength(50, ErrorMessage = "Last name must be less than 50 characters.")]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email format.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Phone(ErrorMessage = "Invalid phone number format.")]
+        public string? PhoneNumber { get; set; }
+
+        [Required(ErrorMessage = "Password is required.")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be between 8 and 100 characters.")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]", 
+            ErrorMessage = "Password must contain uppercase, lowercase, number and special character.")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please confirm your password.")]
+        [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "You must agree to the terms and conditions.")]
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must agree to the terms and conditions.")]
+        public bool AgreeToTerms { get; set; }
+    }
+}
