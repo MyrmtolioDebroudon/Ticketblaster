@@ -1,0 +1,181 @@
+### TicketBlaster Event Search and Discovery API Tests
+### This file can be used with REST Client extensions in VS Code or similar tools
+
+@baseUrl = https://localhost:5001/api
+@contentType = application/json
+
+### 1. Advanced Event Search
+POST {{baseUrl}}/eventsearch/search
+Content-Type: {{contentType}}
+
+{
+  "searchTerm": "concert",
+  "categoryIds": [1],
+  "startDate": "2024-01-01",
+  "endDate": "2024-12-31",
+  "minPrice": 0,
+  "maxPrice": 100,
+  "tags": ["music", "rock"],
+  "isVirtual": false,
+  "sortBy": "StartDate",
+  "sortDirection": "Ascending",
+  "pageNumber": 1,
+  "pageSize": 20
+}
+
+### 2. Quick Search
+GET {{baseUrl}}/eventsearch/quick?q=music&categoryId=1&page=1&size=10
+
+### 3. Search Nearby Events
+GET {{baseUrl}}/eventsearch/nearby?latitude=40.7128&longitude=-74.0060&radius=50&page=1&size=20
+
+### 4. Search by Date Range
+GET {{baseUrl}}/eventsearch/by-date?startDate=2024-01-01&endDate=2024-01-31&page=1&size=20
+
+### 5. Search by Price Range
+GET {{baseUrl}}/eventsearch/by-price?minPrice=0&maxPrice=50&page=1&size=20
+
+### 6. Search Virtual Events
+GET {{baseUrl}}/eventsearch/virtual?page=1&size=20
+
+### 7. Search Free Events
+GET {{baseUrl}}/eventsearch/free?page=1&size=20
+
+### 8. Get Search Facets
+POST {{baseUrl}}/eventsearch/facets
+Content-Type: {{contentType}}
+
+{
+  "searchTerm": "music",
+  "categoryIds": [1]
+}
+
+### 9. Get Popular Search Terms
+GET {{baseUrl}}/eventsearch/popular-terms?count=10
+
+### 10. Get Discovery Content
+GET {{baseUrl}}/eventdiscovery?latitude=40.7128&longitude=-74.0060
+
+### 11. Get Trending Events
+GET {{baseUrl}}/eventdiscovery/trending?period=Last7Days&count=10
+
+### 12. Get Trending Events by Category
+GET {{baseUrl}}/eventdiscovery/trending?categoryId=1&period=Last7Days&count=10
+
+### 13. Get Recommended Events (Requires Authentication)
+GET {{baseUrl}}/eventdiscovery/recommended?count=10&type=Hybrid
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### 14. Get Similar Events
+GET {{baseUrl}}/eventdiscovery/similar/1?count=5
+
+### 15. Get Featured Events
+GET {{baseUrl}}/eventdiscovery/featured?count=10
+
+### 16. Get Events This Week
+GET {{baseUrl}}/eventdiscovery/this-week?count=10
+
+### 17. Record Event View
+POST {{baseUrl}}/eventdiscovery/view/1
+
+### 18. Record Event Interaction (Requires Authentication)
+POST {{baseUrl}}/eventdiscovery/interact/1?interactionType=save
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### 19. Get Event Statistics (Requires Organizer Authorization)
+GET {{baseUrl}}/eventdiscovery/statistics/1
+Authorization: Bearer YOUR_ORGANIZER_TOKEN_HERE
+
+### 20. Get Event Details
+GET {{baseUrl}}/event/1
+
+### 21. Get Public Events
+GET {{baseUrl}}/event?page=1&size=20
+
+### 22. Get Events by Category
+GET {{baseUrl}}/event/category/1?page=1&size=20
+
+### 23. Get Featured Events
+GET {{baseUrl}}/event/featured?count=10
+
+### 24. Create Event (Requires Organizer Authorization)
+POST {{baseUrl}}/event
+Content-Type: {{contentType}}
+Authorization: Bearer YOUR_ORGANIZER_TOKEN_HERE
+
+{
+  "title": "Summer Music Festival",
+  "description": "An amazing outdoor music festival featuring top artists",
+  "startDate": "2024-07-15T18:00:00Z",
+  "endDate": "2024-07-15T23:00:00Z",
+  "location": "Central Park, New York, NY",
+  "imageUrl": "https://example.com/festival.jpg",
+  "categoryId": 1,
+  "maxCapacity": 5000,
+  "customUrl": "summer-music-fest-2024",
+  "tags": "music,festival,outdoor,summer",
+  "isVirtual": false,
+  "isFeatured": false
+}
+
+### 25. Update Event (Requires Organizer Authorization)
+PUT {{baseUrl}}/event/1
+Content-Type: {{contentType}}
+Authorization: Bearer YOUR_ORGANIZER_TOKEN_HERE
+
+{
+  "eventId": 1,
+  "title": "Summer Music Festival - Updated",
+  "description": "An amazing outdoor music festival featuring top artists - Now with more artists!",
+  "startDate": "2024-07-15T18:00:00Z",
+  "endDate": "2024-07-16T02:00:00Z",
+  "location": "Central Park, New York, NY",
+  "imageUrl": "https://example.com/festival-updated.jpg",
+  "categoryId": 1,
+  "maxCapacity": 6000,
+  "customUrl": "summer-music-fest-2024",
+  "tags": "music,festival,outdoor,summer,rock",
+  "isVirtual": false,
+  "isFeatured": true,
+  "status": "Published"
+}
+
+### 26. Publish Event (Requires Organizer Authorization)
+POST {{baseUrl}}/event/1/publish
+Authorization: Bearer YOUR_ORGANIZER_TOKEN_HERE
+
+### 27. Cancel Event (Requires Organizer Authorization)
+POST {{baseUrl}}/event/1/cancel
+Authorization: Bearer YOUR_ORGANIZER_TOKEN_HERE
+
+### 28. Delete Event (Requires Organizer Authorization)
+DELETE {{baseUrl}}/event/1
+Authorization: Bearer YOUR_ORGANIZER_TOKEN_HERE
+
+### 29. Get My Events (Requires Organizer Authorization)
+GET {{baseUrl}}/event/my-events
+Authorization: Bearer YOUR_ORGANIZER_TOKEN_HERE
+
+### 30. Complex Search with Multiple Filters
+POST {{baseUrl}}/eventsearch/search
+Content-Type: {{contentType}}
+
+{
+  "searchTerm": "music",
+  "categoryIds": [1, 4],
+  "startDate": "2024-06-01",
+  "endDate": "2024-08-31",
+  "location": "New York",
+  "minPrice": 25,
+  "maxPrice": 150,
+  "tags": ["outdoor", "festival"],
+  "isVirtual": false,
+  "isFeatured": true,
+  "latitude": 40.7128,
+  "longitude": -74.0060,
+  "radiusKm": 25,
+  "sortBy": "Price",
+  "sortDirection": "Ascending",
+  "pageNumber": 1,
+  "pageSize": 20
+}
