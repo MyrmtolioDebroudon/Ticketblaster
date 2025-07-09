@@ -1,0 +1,246 @@
+@page "/payment/{OrderId:int}"
+@using TicketBlaster.Shared.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.JSInterop
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Complete Your Payment</h3>
+
+@if (isLoading)
+{
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+}
+else if (order != null)
+{
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Payment Details</h4>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @errorMessage
+                        </div>
+                    }
+
+                    <form id="payment-form">
+                        <div class="form-group">
+                            <label for="card-element">Credit or debit card</label>
+                            <div id="card-element" class="form-control">
+                                <!-- Stripe Elements will be inserted here -->
+                            </div>
+                            <div id="card-errors" role="alert" class="text-danger mt-2"></div>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <label>Cardholder Name</label>
+                            <input type="text" class="form-control" @bind="cardholderName" placeholder="John Doe" />
+                        </div>
+
+                        <button type="submit" id="submit-button" class="btn btn-primary mt-3" disabled="@isProcessing">
+                            @if (isProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                                <span>Processing...</span>
+                            }
+                            else
+                            {
+                                <span>Pay @order.TotalAmount.ToString("C")</span>
+                            }
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Order Summary</h4>
+                </div>
+                <div class="card-body">
+                    <h5>@order.Event.Title</h5>
+                    <hr />
+                    <dl class="row">
+                        <dt class="col-sm-6">Order Number:</dt>
+                        <dd class="col-sm-6">@order.OrderNumber</dd>
+
+                        <dt class="col-sm-6">Subtotal:</dt>
+                        <dd class="col-sm-6">@order.SubTotal.ToString("C")</dd>
+
+                        <dt class="col-sm-6">Service Fee:</dt>
+                        <dd class="col-sm-6">@order.ServiceFee.ToString("C")</dd>
+
+                        <dt class="col-sm-6">Tax:</dt>
+                        <dd class="col-sm-6">@order.TaxAmount.ToString("C")</dd>
+
+                        @if (order.DiscountAmount > 0)
+                        {
+                            <dt class="col-sm-6">Discount:</dt>
+                            <dd class="col-sm-6 text-success">-@order.DiscountAmount.ToString("C")</dd>
+                        }
+
+                        <dt class="col-sm-6"><strong>Total:</strong></dt>
+                        <dd class="col-sm-6"><strong>@order.TotalAmount.ToString("C")</strong></dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6>Secure Payment</h6>
+                    <p class="small text-muted">
+                        <i class="fas fa-lock"></i> Your payment information is encrypted and secure.
+                        We never store your credit card details.
+                    </p>
+                    <img src="/images/stripe-badge.png" alt="Powered by Stripe" class="img-fluid" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+
+@code {
+    [Parameter] public int OrderId { get; set; }
+
+    private Order? order;
+    private string? paymentIntentClientSecret;
+    private string? stripePublishableKey;
+    private string cardholderName = string.Empty;
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Get order details
+            var response = await Http.GetAsync($"api/order/{OrderId}");
+            if (response.IsSuccessStatusCode)
+            {
+                order = await response.Content.ReadFromJsonAsync<Order>();
+                
+                if (order?.Status != OrderStatus.Pending)
+                {
+                    errorMessage = "This order cannot be paid at this time.";
+                    isLoading = false;
+                    return;
+                }
+
+                // Create payment intent
+                await CreatePaymentIntent();
+            }
+            else
+            {
+                errorMessage = "Order not found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred loading the order.";
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(paymentIntentClientSecret) && !string.IsNullOrEmpty(stripePublishableKey))
+        {
+            await InitializeStripe();
+        }
+    }
+
+    private async Task CreatePaymentIntent()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/payment/create-payment-intent", new { OrderId });
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<PaymentIntentResponse>();
+                if (result != null)
+                {
+                    paymentIntentClientSecret = result.ClientSecret;
+                    stripePublishableKey = result.PublishableKey;
+                }
+            }
+            else
+            {
+                errorMessage = "Failed to initialize payment.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred initializing payment.";
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task InitializeStripe()
+    {
+        await JS.InvokeVoidAsync("initializeStripe", stripePublishableKey, paymentIntentClientSecret, DotNetObjectReference.Create(this));
+    }
+
+    [JSInvokable]
+    public async Task HandlePaymentResult(bool success, string? error = null)
+    {
+        isProcessing = false;
+
+        if (success)
+        {
+            // Payment successful, confirm on server
+            var response = await Http.PostAsJsonAsync("api/payment/confirm-payment", 
+                new { PaymentIntentId = paymentIntentClientSecret?.Split('_secret_')[0] });
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Redirect to success page
+                Navigation.NavigateTo($"/order/{OrderId}/success");
+            }
+            else
+            {
+                errorMessage = "Payment confirmation failed. Please contact support.";
+            }
+        }
+        else
+        {
+            errorMessage = error ?? "Payment failed. Please try again.";
+        }
+
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void SetProcessing(bool processing)
+    {
+        isProcessing = processing;
+        StateHasChanged();
+    }
+
+    private class PaymentIntentResponse
+    {
+        public string ClientSecret { get; set; } = string.Empty;
+        public string PublishableKey { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public string Currency { get; set; } = string.Empty;
+    }
+}

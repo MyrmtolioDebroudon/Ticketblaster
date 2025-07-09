@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using TicketBlaster.Database;
 using TicketBlaster.Server.Services;
+using TicketBlaster.Server.Repository;
+using TicketBlaster.Server.Repository.Interfaces;
 using TicketBlaster.Server.Infrastructure;
 using Oqtane.Infrastructure;
 using Oqtane.Repository;
@@ -75,10 +77,14 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddAutoMapper(typeof(Program));
 
 // Add FluentValidation
-builder.Services.AddFluentValidationAutoValidation();
+// builder.Services.AddFluentValidationAutoValidation();
 
 // Add Stripe services
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+
+// Add repositories
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
 // Add our custom services
 builder.Services.AddScoped<IEventService, EventService>();
