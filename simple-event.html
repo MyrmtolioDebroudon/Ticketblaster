@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details - TicketBlaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3d5a99;
+            --secondary-color: #f05537;
+            --accent-color: #39364f;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --dark-bg: #343a40;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: var(--light-bg);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .event-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: white;
+            padding: 3rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 100%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .ticket-card {
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .ticket-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .alert {
+            border-radius: 10px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-control {
+            border-radius: 8px;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(61, 90, 153, 0.25);
+        }
+
+        .form-control-sm {
+            border-radius: 6px;
+        }
+
+        h1, h3, h5, h6 {
+            color: var(--accent-color);
+        }
+
+        .text-muted {
+            color: #6c757d !important;
+        }
+
+        #eventTitle {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #eventDate {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        #eventLocation {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/index.html">
+                <i class="fas fa-ticket-alt"></i> TicketBlaster
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/events.html">Back to Events</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="event-header">
+        <div class="container">
+            <h1 id="eventTitle">Loading...</h1>
+            <p id="eventDate" class="lead">Loading...</p>
+            <p id="eventLocation">Loading...</p>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h3>Event Description</h3>
+                        <p id="eventDescription">Loading...</p>
+                        
+                        <div id="debugInfo" class="alert alert-info" style="display: none;">
+                            <h6>Debug Information:</h6>
+                            <p id="debugText"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h3>Select Tickets</h3>
+                        <div id="ticketTypes">Loading...</div>
+                        
+                        <div class="mt-4">
+                            <h5>Order Summary</h5>
+                            <div class="d-flex justify-content-between">
+                                <span>Total:</span>
+                                <span id="orderTotal">$0.00</span>
+                            </div>
+                            
+                            <button class="btn btn-primary w-100 mt-3" onclick="proceedToCheckout()" id="checkoutBtn" disabled>
+                                <i class="fas fa-shopping-cart me-2"></i>
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentEvent = null;
+        let cartTotal = 0;
+        let selectedTickets = [];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            const eventId = new URLSearchParams(window.location.search).get('id') || '1';
+            showDebug(`Starting to load event ID: ${eventId}`);
+            loadEventDetails(eventId);
+        });
+
+        // Show debug information
+        function showDebug(message) {
+            const debugInfo = document.getElementById('debugInfo');
+            const debugText = document.getElementById('debugText');
+            debugInfo.style.display = 'block';
+            debugText.innerHTML += `<br>${new Date().toLocaleTimeString()}: ${message}`;
+        }
+
+        // Load event details
+        async function loadEventDetails(eventId) {
+            try {
+                showDebug(`Making API call to: /api/events/${eventId}`);
+                
+                const response = await fetch(`/api/events/${eventId}`);
+                showDebug(`API response status: ${response.status}`);
+                
+                if (response.ok) {
+                    currentEvent = await response.json();
+                    showDebug(`Event loaded successfully: ${currentEvent.title}`);
+                    displayEventDetails();
+                } else {
+                    const errorText = await response.text();
+                    showDebug(`API error: ${errorText}`);
+                    showError('Event not found');
+                }
+            } catch (error) {
+                showDebug(`JavaScript error: ${error.message}`);
+                console.error('Error loading event:', error);
+                showError('Error loading event information');
+            }
+        }
+
+        // Display event details
+        function displayEventDetails() {
+            if (!currentEvent) {
+                showDebug('No event data available');
+                return;
+            }
+
+            // Update basic info
+            document.getElementById('eventTitle').textContent = currentEvent.title;
+            document.getElementById('eventDate').textContent = new Date(currentEvent.startDate).toLocaleDateString();
+            document.getElementById('eventLocation').textContent = currentEvent.location || 'Virtual Event';
+            document.getElementById('eventDescription').textContent = currentEvent.description;
+
+            // Display ticket types
+            displayTicketTypes();
+        }
+
+        // Display ticket types
+        function displayTicketTypes() {
+            const container = document.getElementById('ticketTypes');
+            
+            if (!currentEvent.ticketTypes || currentEvent.ticketTypes.length === 0) {
+                container.innerHTML = '<p class="text-muted">No tickets available</p>';
+                return;
+            }
+
+            let ticketsHtml = '';
+            currentEvent.ticketTypes.forEach((ticket, index) => {
+                ticketsHtml += `
+                    <div class="ticket-card">
+                        <h6>${ticket.name}</h6>
+                        <p class="text-muted mb-2">$${ticket.price.toFixed(2)}</p>
+                        <p class="small text-muted">${ticket.availableQuantity} available</p>
+                        
+                        <div class="d-flex align-items-center">
+                            <label class="me-2">Quantity:</label>
+                            <input type="number" class="form-control form-control-sm" 
+                                   id="qty_${index}" 
+                                   min="0" 
+                                   max="${ticket.availableQuantity}"
+                                   value="0"
+                                   onchange="updateTotal()"
+                                   style="width: 80px;">
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = ticketsHtml;
+        }
+
+        // Update total
+        function updateTotal() {
+            cartTotal = 0;
+            selectedTickets = [];
+
+            if (!currentEvent || !currentEvent.ticketTypes) return;
+
+            currentEvent.ticketTypes.forEach((ticket, index) => {
+                const qty = parseInt(document.getElementById(`qty_${index}`).value) || 0;
+                if (qty > 0) {
+                    const subtotal = qty * ticket.price;
+                    cartTotal += subtotal;
+                    selectedTickets.push({
+                        type: ticket.name,
+                        quantity: qty,
+                        price: ticket.price
+                    });
+                }
+            });
+
+            document.getElementById('orderTotal').textContent = `$${cartTotal.toFixed(2)}`;
+            document.getElementById('checkoutBtn').disabled = cartTotal === 0;
+        }
+
+        // Proceed to checkout
+        function proceedToCheckout() {
+            if (cartTotal === 0) {
+                alert('Please select at least one ticket');
+                return;
+            }
+
+            // Create order data
+            const orderData = {
+                eventId: currentEvent.eventId,
+                tickets: selectedTickets,
+                total: cartTotal
+            };
+
+            // Store in session storage
+            sessionStorage.setItem('orderData', JSON.stringify(orderData));
+            showDebug(`Order data stored: ${JSON.stringify(orderData)}`);
+            
+            // Check authentication
+            const token = localStorage.getItem('token');
+            if (token) {
+                window.location.href = '/checkout.html';
+            } else {
+                alert('Please log in to continue with checkout');
+                window.location.href = `/login.html?redirect=${encodeURIComponent(window.location.href)}`;
+            }
+        }
+
+        // Show error
+        function showError(message) {
+            document.getElementById('eventTitle').textContent = 'Error';
+            document.getElementById('eventDate').textContent = message;
+            document.getElementById('eventLocation').textContent = '';
+            document.getElementById('eventDescription').textContent = 'Please try refreshing the page or contact support.';
+            document.getElementById('ticketTypes').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${message}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

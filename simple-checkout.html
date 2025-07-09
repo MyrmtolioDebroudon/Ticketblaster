@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - TicketBlaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/index.html">
+                <i class="fas fa-ticket-alt"></i> TicketBlaster
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1>Checkout</h1>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Debug Information</h5>
+                        <div id="debugInfo" class="alert alert-info">
+                            <p id="debugText">Loading...</p>
+                        </div>
+                        
+                        <h5>Order Summary</h5>
+                        <div id="orderSummary">Loading...</div>
+                        
+                        <div class="mt-4">
+                            <h5>Customer Information</h5>
+                            <form id="checkoutForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="firstName" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="lastName" required>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                                <div class="mt-3">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-credit-card me-2"></i>
+                                        Complete Purchase
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Order Total</h5>
+                        <div id="orderTotal" class="h3 text-primary">$0.00</div>
+                        
+                        <div class="mt-3">
+                            <h6>Event Details</h6>
+                            <div id="eventDetails">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let orderData = null;
+        let eventData = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initCheckout();
+        });
+
+        function addDebug(message) {
+            const debugText = document.getElementById('debugText');
+            debugText.innerHTML += `<br>${new Date().toLocaleTimeString()}: ${message}`;
+        }
+
+        async function initCheckout() {
+            addDebug('Starting checkout initialization...');
+            
+            // Check authentication
+            const token = localStorage.getItem('token');
+            if (!token) {
+                addDebug('❌ No authentication token found');
+                alert('Please log in to continue');
+                window.location.href = '/login.html';
+                return;
+            }
+            addDebug('✅ Authentication token found');
+
+            // Get order data
+            const orderDataString = sessionStorage.getItem('orderData');
+            if (!orderDataString) {
+                addDebug('❌ No order data in session storage');
+                alert('No order data found. Please select tickets again.');
+                window.location.href = '/events.html';
+                return;
+            }
+            addDebug('✅ Order data found in session storage');
+
+            try {
+                orderData = JSON.parse(orderDataString);
+                addDebug(`✅ Order data parsed: Event ID ${orderData.eventId}, Total $${orderData.total}`);
+                
+                // Load event data
+                await loadEventData();
+                
+                // Display everything
+                displayOrderSummary();
+                prefillUserData();
+                setupForm();
+                
+            } catch (error) {
+                addDebug(`❌ Error parsing order data: ${error.message}`);
+                alert('Invalid order data. Please try again.');
+                window.location.href = '/events.html';
+            }
+        }
+
+        async function loadEventData() {
+            addDebug(`Making API call to /api/events/${orderData.eventId}`);
+            
+            try {
+                const response = await fetch(`/api/events/${orderData.eventId}`);
+                addDebug(`API response status: ${response.status}`);
+                
+                if (response.ok) {
+                    eventData = await response.json();
+                    addDebug(`✅ Event data loaded: ${eventData.title}`);
+                } else {
+                    const errorText = await response.text();
+                    addDebug(`❌ API error: ${errorText}`);
+                    throw new Error(`API returned ${response.status}`);
+                }
+            } catch (error) {
+                addDebug(`❌ Error loading event data: ${error.message}`);
+                // Don't throw - use fallback data
+                eventData = {
+                    eventId: orderData.eventId,
+                    title: 'Event (Details Unavailable)',
+                    startDate: new Date().toISOString(),
+                    location: 'Location TBD'
+                };
+                addDebug('📦 Using fallback event data');
+            }
+        }
+
+        function displayOrderSummary() {
+            let summaryHtml = `
+                <div class="mb-3">
+                    <h6>${eventData.title}</h6>
+                    <small class="text-muted">${new Date(eventData.startDate).toLocaleDateString()}</small>
+                    <br>
+                    <small class="text-muted">${eventData.location || 'Virtual Event'}</small>
+                </div>
+            `;
+
+            orderData.tickets.forEach(ticket => {
+                summaryHtml += `
+                    <div class="border rounded p-2 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>${ticket.type}</strong><br>
+                                <small>Qty: ${ticket.quantity}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong>$${(ticket.price * ticket.quantity).toFixed(2)}</strong><br>
+                                <small>$${ticket.price.toFixed(2)} each</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('orderSummary').innerHTML = summaryHtml;
+            document.getElementById('orderTotal').textContent = `$${orderData.total.toFixed(2)}`;
+            
+            const eventDetailsHtml = `
+                <p><strong>${eventData.title}</strong></p>
+                <p>${new Date(eventData.startDate).toLocaleDateString()}</p>
+                <p>${eventData.location || 'Virtual Event'}</p>
+            `;
+            document.getElementById('eventDetails').innerHTML = eventDetailsHtml;
+        }
+
+        function prefillUserData() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    document.getElementById('firstName').value = payload.given_name || '';
+                    document.getElementById('lastName').value = payload.family_name || '';
+                    document.getElementById('email').value = payload.email || '';
+                    addDebug('✅ User data prefilled from token');
+                } catch (error) {
+                    addDebug('⚠️ Could not parse user data from token');
+                }
+            }
+        }
+
+        function setupForm() {
+            document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                addDebug('🛒 Processing order...');
+                
+                const formData = {
+                    eventId: orderData.eventId,
+                    tickets: orderData.tickets,
+                    total: orderData.total,
+                    customer: {
+                        firstName: document.getElementById('firstName').value,
+                        lastName: document.getElementById('lastName').value,
+                        email: document.getElementById('email').value
+                    }
+                };
+
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        addDebug(`✅ Order created: ${result.orderId}`);
+                        
+                        sessionStorage.removeItem('orderData');
+                        alert(`Order successful! Order ID: ${result.orderId}`);
+                        window.location.href = `/order-confirmation.html?orderId=${result.orderId}`;
+                    } else {
+                        const errorText = await response.text();
+                        addDebug(`❌ Order failed: ${errorText}`);
+                        alert('Order failed. Please try again.');
+                    }
+                } catch (error) {
+                    addDebug(`❌ Order error: ${error.message}`);
+                    alert('Error processing order. Please try again.');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cart Flow - TicketBlaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/index.html">
+                <i class="fas fa-ticket-alt"></i> TicketBlaster
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1>Test Cart Flow</h1>
+        <p>This page tests the cart-to-checkout functionality.</p>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Tech Conference 2024</h5>
+                        <p class="card-text">Test event for cart functionality</p>
+                        
+                        <div class="mb-3">
+                            <label>General Admission ($199.99)</label>
+                            <input type="number" id="generalQty" class="form-control" min="0" max="10" value="0">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>VIP Pass ($499.99)</label>
+                            <input type="number" id="vipQty" class="form-control" min="0" max="5" value="0">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Total: $<span id="total">0.00</span></strong>
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="proceedToCheckout()" id="checkoutBtn" disabled>
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            Proceed to Checkout
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Test Results</h5>
+                        <div id="testResults">
+                            <p>Select tickets and click checkout to test the flow.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let cartTotal = 0;
+        let selectedTickets = [];
+
+        // Update totals when quantities change
+        document.getElementById('generalQty').addEventListener('change', updateTotal);
+        document.getElementById('vipQty').addEventListener('change', updateTotal);
+
+        function updateTotal() {
+            const generalQty = parseInt(document.getElementById('generalQty').value) || 0;
+            const vipQty = parseInt(document.getElementById('vipQty').value) || 0;
+            
+            const generalPrice = 199.99;
+            const vipPrice = 499.99;
+            
+            cartTotal = (generalQty * generalPrice) + (vipQty * vipPrice);
+            selectedTickets = [];
+            
+            if (generalQty > 0) {
+                selectedTickets.push({
+                    type: 'General Admission',
+                    quantity: generalQty,
+                    price: generalPrice
+                });
+            }
+            
+            if (vipQty > 0) {
+                selectedTickets.push({
+                    type: 'VIP Pass',
+                    quantity: vipQty,
+                    price: vipPrice
+                });
+            }
+            
+            document.getElementById('total').textContent = cartTotal.toFixed(2);
+            document.getElementById('checkoutBtn').disabled = cartTotal === 0;
+            
+            // Update test results
+            document.getElementById('testResults').innerHTML = `
+                <p><strong>Cart Total:</strong> $${cartTotal.toFixed(2)}</p>
+                <p><strong>Selected Tickets:</strong></p>
+                <ul>
+                    ${selectedTickets.map(t => `<li>${t.type}: ${t.quantity} x $${t.price.toFixed(2)}</li>`).join('')}
+                </ul>
+            `;
+        }
+
+        function proceedToCheckout() {
+            if (cartTotal === 0) {
+                alert('Please select at least one ticket');
+                return;
+            }
+
+            // Create order data (same as in event-details.html)
+            const orderData = {
+                eventId: 1, // Tech Conference
+                tickets: selectedTickets,
+                total: cartTotal
+            };
+
+            // Store in session storage
+            sessionStorage.setItem('orderData', JSON.stringify(orderData));
+            
+            // Check authentication
+            const token = localStorage.getItem('token');
+            if (token) {
+                document.getElementById('testResults').innerHTML = `
+                    <div class="alert alert-success">
+                        <h6>✅ Test Passed!</h6>
+                        <p>Order data stored successfully:</p>
+                        <pre>${JSON.stringify(orderData, null, 2)}</pre>
+                        <a href="/checkout.html" class="btn btn-primary btn-sm">Go to Checkout</a>
+                    </div>
+                `;
+            } else {
+                document.getElementById('testResults').innerHTML = `
+                    <div class="alert alert-warning">
+                        <h6>⚠️ Authentication Required</h6>
+                        <p>You need to login first to complete checkout.</p>
+                        <a href="/login.html?redirect=/test-cart.html" class="btn btn-primary btn-sm">Login</a>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize
+        updateTotal();
+    </script>
+</body>
+</html>

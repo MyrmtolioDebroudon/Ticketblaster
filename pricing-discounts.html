@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing & Discounts - TicketBlaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .pricing-card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .pricing-card:hover {
+            transform: translateY(-3px);
+        }
+        .discount-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4757;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        .price-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .original-price {
+            text-decoration: line-through;
+            color: #7f8c8d;
+            font-size: 1.2rem;
+        }
+        .discount-type-percentage {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .discount-type-fixed {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .stats-container {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/index.html">
+                <i class="fas fa-ticket-alt"></i> TicketBlaster
+            </a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/events.html">Events</a>
+                <a class="nav-link" href="/ticket-inventory.html">Inventory</a>
+                <a class="nav-link active" href="/pricing-discounts.html">Pricing & Discounts</a>
+                <a class="nav-link" href="/categories.html">Categories</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Pricing & Discount Management</h1>
+            <button class="btn btn-primary" onclick="showCreateDiscountModal()">
+                <i class="fas fa-plus"></i> Create Discount
+            </button>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-container">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <i class="fas fa-ticket-alt fa-2x mb-2"></i>
+                        <h3 id="totalTicketTypes">0</h3>
+                        <p class="mb-0">Ticket Types</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <i class="fas fa-tags fa-2x mb-2"></i>
+                        <h3 id="activeDiscounts">0</h3>
+                        <p class="mb-0">Active Discounts</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                        <h3 id="avgPrice">$0</h3>
+                        <p class="mb-0">Average Price</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <i class="fas fa-chart-line fa-2x mb-2"></i>
+                        <h3 id="totalSavings">$0</h3>
+                        <p class="mb-0">Total Savings</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <label for="eventFilter" class="form-label">Filter by Event</label>
+                <select class="form-select" id="eventFilter">
+                    <option value="">All Events</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="priceRange" class="form-label">Price Range</label>
+                <select class="form-select" id="priceRange">
+                    <option value="">All Prices</option>
+                    <option value="0-25">$0 - $25</option>
+                    <option value="26-50">$26 - $50</option>
+                    <option value="51-100">$51 - $100</option>
+                    <option value="101-999">$101+</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="discountFilter" class="form-label">Discount Status</label>
+                <select class="form-select" id="discountFilter">
+                    <option value="">All</option>
+                    <option value="with-discount">With Discount</option>
+                    <option value="no-discount">No Discount</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button class="btn btn-outline-primary w-100" onclick="applyFilters()">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+            </div>
+        </div>
+
+        <!-- Pricing Grid -->
+        <div class="row" id="pricingGrid">
+            <!-- Pricing items will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Create/Edit Discount Modal -->
+    <div class="modal fade" id="discountModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="discountModalTitle">Create Discount</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="discountForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="discountName" class="form-label">Discount Name *</label>
+                                    <input type="text" class="form-control" id="discountName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="discountCode" class="form-label">Discount Code *</label>
+                                    <input type="text" class="form-control" id="discountCode" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="ticketTypeSelect" class="form-label">Ticket Type *</label>
+                                    <select class="form-select" id="ticketTypeSelect" required>
+                                        <option value="">Select a ticket type</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="discountType" class="form-label">Discount Type *</label>
+                                    <select class="form-select" id="discountType" required>
+                                        <option value="Percentage">Percentage</option>
+                                        <option value="FixedAmount">Fixed Amount</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="discountValue" class="form-label">Value *</label>
+                                    <input type="number" class="form-control" id="discountValue" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="maxUses" class="form-label">Max Uses</label>
+                                    <input type="number" class="form-control" id="maxUses" min="1">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="startDate" class="form-label">Start Date *</label>
+                                    <input type="datetime-local" class="form-control" id="startDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="endDate" class="form-label">End Date *</label>
+                                    <input type="datetime-local" class="form-control" id="endDate" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isActive" checked>
+                                <label class="form-check-label" for="isActive">
+                                    Active
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveDiscount()">Save Discount</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allTicketTypes = [];
+        let allEvents = [];
+        let allDiscounts = [];
+        let filteredTicketTypes = [];
+        let isEditMode = false;
+        let editingDiscountId = null;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEvents();
+            loadTicketTypes();
+            loadDiscounts();
+        });
+
+        // Load events
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/events');
+                allEvents = await response.json();
+                
+                const eventFilter = document.getElementById('eventFilter');
+                const ticketTypeSelect = document.getElementById('ticketTypeSelect');
+                
+                eventFilter.innerHTML = '<option value="">All Events</option>';
+                
+                allEvents.forEach(event => {
+                    const option = document.createElement('option');
+                    option.value = event.eventId;
+                    option.textContent = event.title;
+                    eventFilter.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        // Load ticket types
+        async function loadTicketTypes() {
+            try {
+                const response = await fetch('/api/tickettypes');
+                allTicketTypes = await response.json();
+                
+                // Load pricing info for each ticket type
+                const pricingPromises = allTicketTypes.map(async (ticketType) => {
+                    const pricingResponse = await fetch(`/api/tickettypes/${ticketType.ticketTypeId}/pricing`);
+                    const pricingData = await pricingResponse.json();
+                    return { ...ticketType, pricing: pricingData };
+                });
+                
+                allTicketTypes = await Promise.all(pricingPromises);
+                filteredTicketTypes = [...allTicketTypes];
+                
+                populateTicketTypeSelect();
+                updateStats();
+                displayPricing();
+            } catch (error) {
+                console.error('Error loading ticket types:', error);
+            }
+        }
+
+        // Load discounts
+        async function loadDiscounts() {
+            try {
+                const response = await fetch('/api/discounts/active');
+                allDiscounts = await response.json();
+            } catch (error) {
+                console.error('Error loading discounts:', error);
+            }
+        }
+
+        // Populate ticket type select
+        function populateTicketTypeSelect() {
+            const select = document.getElementById('ticketTypeSelect');
+            select.innerHTML = '<option value="">Select a ticket type</option>';
+            
+            allTicketTypes.forEach(ticketType => {
+                const event = allEvents.find(e => e.eventId === ticketType.eventId);
+                const option = document.createElement('option');
+                option.value = ticketType.ticketTypeId;
+                option.textContent = `${ticketType.name} - ${event?.title || 'Unknown Event'}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalTicketTypes = filteredTicketTypes.length;
+            const activeDiscounts = allDiscounts.length;
+            const avgPrice = totalTicketTypes > 0 ? 
+                filteredTicketTypes.reduce((sum, tt) => sum + tt.price, 0) / totalTicketTypes : 0;
+            
+            let totalSavings = 0;
+            filteredTicketTypes.forEach(tt => {
+                if (tt.pricing.discounts && tt.pricing.discounts.length > 0) {
+                    tt.pricing.discounts.forEach(discount => {
+                        totalSavings += tt.pricing.basePrice - discount.discountedPrice;
+                    });
+                }
+            });
+
+            document.getElementById('totalTicketTypes').textContent = totalTicketTypes;
+            document.getElementById('activeDiscounts').textContent = activeDiscounts;
+            document.getElementById('avgPrice').textContent = `$${avgPrice.toFixed(2)}`;
+            document.getElementById('totalSavings').textContent = `$${totalSavings.toFixed(2)}`;
+        }
+
+        // Display pricing grid
+        function displayPricing() {
+            const grid = document.getElementById('pricingGrid');
+            
+            if (filteredTicketTypes.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-dollar-sign fa-3x text-muted mb-3"></i>
+                        <h3>No ticket types found</h3>
+                        <p class="text-muted">Try adjusting your filters.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const pricingHtml = filteredTicketTypes.map(ticketType => {
+                const event = allEvents.find(e => e.eventId === ticketType.eventId);
+                const hasDiscount = ticketType.pricing.discounts && ticketType.pricing.discounts.length > 0;
+                const discount = hasDiscount ? ticketType.pricing.discounts[0] : null;
+                
+                return `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card pricing-card position-relative">
+                            ${hasDiscount ? `<div class="discount-badge">-${discount.type === 'Percentage' ? discount.value + '%' : '$' + discount.value}</div>` : ''}
+                            
+                            <div class="card-body">
+                                <h6 class="card-title">${ticketType.name}</h6>
+                                <p class="text-muted small">${event?.title || 'Unknown Event'}</p>
+                                
+                                <div class="text-center mb-3">
+                                    ${hasDiscount ? `
+                                        <div class="original-price">$${ticketType.pricing.basePrice}</div>
+                                        <div class="price-display text-success">$${discount.discountedPrice}</div>
+                                        <small class="text-success">You save $${discount.savings.toFixed(2)}</small>
+                                    ` : `
+                                        <div class="price-display">$${ticketType.pricing.basePrice}</div>
+                                    `}
+                                </div>
+                                
+                                ${hasDiscount ? `
+                                    <div class="discount-info mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="small">Discount:</span>
+                                            <strong class="small">${discount.name}</strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span class="small">Code:</span>
+                                            <code class="small">${discount.code}</code>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="updatePrice(${ticketType.ticketTypeId})">
+                                        <i class="fas fa-dollar-sign"></i> Price
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success" onclick="createDiscountFor(${ticketType.ticketTypeId})">
+                                        <i class="fas fa-tag"></i> Discount
+                                    </button>
+                                    ${hasDiscount ? `
+                                        <button class="btn btn-sm btn-outline-danger" onclick="removeDiscount(${discount.discountId})">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            grid.innerHTML = pricingHtml;
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const eventFilter = document.getElementById('eventFilter').value;
+            const priceRange = document.getElementById('priceRange').value;
+            const discountFilter = document.getElementById('discountFilter').value;
+
+            filteredTicketTypes = allTicketTypes.filter(tt => {
+                if (eventFilter && tt.eventId != eventFilter) return false;
+                
+                if (priceRange) {
+                    const [min, max] = priceRange.split('-').map(Number);
+                    if (tt.price < min || (max !== 999 && tt.price > max)) return false;
+                }
+                
+                if (discountFilter) {
+                    const hasDiscount = tt.pricing.discounts && tt.pricing.discounts.length > 0;
+                    if (discountFilter === 'with-discount' && !hasDiscount) return false;
+                    if (discountFilter === 'no-discount' && hasDiscount) return false;
+                }
+                
+                return true;
+            });
+
+            updateStats();
+            displayPricing();
+        }
+
+        // Show create discount modal
+        function showCreateDiscountModal() {
+            isEditMode = false;
+            editingDiscountId = null;
+            document.getElementById('discountModalTitle').textContent = 'Create Discount';
+            document.getElementById('discountForm').reset();
+            
+            // Set default dates
+            const now = new Date();
+            document.getElementById('startDate').value = now.toISOString().slice(0, 16);
+            
+            const endDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days later
+            document.getElementById('endDate').value = endDate.toISOString().slice(0, 16);
+            
+            new bootstrap.Modal(document.getElementById('discountModal')).show();
+        }
+
+        // Create discount for specific ticket type
+        function createDiscountFor(ticketTypeId) {
+            showCreateDiscountModal();
+            document.getElementById('ticketTypeSelect').value = ticketTypeId;
+        }
+
+        // Save discount
+        async function saveDiscount() {
+            const discountData = {
+                name: document.getElementById('discountName').value,
+                code: document.getElementById('discountCode').value,
+                ticketTypeId: parseInt(document.getElementById('ticketTypeSelect').value),
+                type: document.getElementById('discountType').value,
+                value: parseFloat(document.getElementById('discountValue').value),
+                maxUses: document.getElementById('maxUses').value ? parseInt(document.getElementById('maxUses').value) : null,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                isActive: document.getElementById('isActive').checked,
+                createdBy: 1
+            };
+
+            try {
+                const response = await fetch('/api/discounts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(discountData)
+                });
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('discountModal')).hide();
+                    await loadTicketTypes();
+                    await loadDiscounts();
+                    alert('Discount created successfully!');
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error saving discount:', error);
+                alert('Error saving discount');
+            }
+        }
+
+        // Update price
+        async function updatePrice(ticketTypeId) {
+            const ticketType = allTicketTypes.find(tt => tt.ticketTypeId === ticketTypeId);
+            const newPrice = prompt(`Enter new price for ${ticketType.name}:`, ticketType.price);
+            
+            if (newPrice !== null && !isNaN(newPrice) && newPrice >= 0) {
+                try {
+                    const response = await fetch(`/api/tickettypes/${ticketTypeId}/pricing`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(parseFloat(newPrice))
+                    });
+
+                    if (response.ok) {
+                        await loadTicketTypes();
+                        alert('Price updated successfully!');
+                    } else {
+                        alert('Error updating price');
+                    }
+                } catch (error) {
+                    console.error('Error updating price:', error);
+                    alert('Error updating price');
+                }
+            }
+        }
+
+        // Remove discount
+        async function removeDiscount(discountId) {
+            if (confirm('Are you sure you want to remove this discount?')) {
+                try {
+                    const response = await fetch(`/api/discounts/${discountId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        await loadTicketTypes();
+                        await loadDiscounts();
+                        alert('Discount removed successfully!');
+                    } else {
+                        alert('Error removing discount');
+                    }
+                } catch (error) {
+                    console.error('Error removing discount:', error);
+                    alert('Error removing discount');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

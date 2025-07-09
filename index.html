@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketBlaster - Find Your Next Event</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3d5a99;
+            --secondary-color: #f05537;
+            --accent-color: #39364f;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --dark-bg: #343a40;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Header Navigation */
+        .main-header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .header-top {
+            background: var(--accent-color);
+            color: white;
+            padding: 0.5rem 0;
+            font-size: 0.875rem;
+        }
+
+        .header-main {
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .search-bar {
+            position: relative;
+            flex: 1;
+            max-width: 500px;
+            margin: 0 2rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(61, 90, 153, 0.1);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background: #d4461f;
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #2e4a7f;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            background: transparent;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: white;
+            padding: 8rem 0 4rem;
+            margin-top: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 100%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-search {
+            background: rgba(255,255,255,0.1);
+            border-radius: 50px;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .hero-search .search-input {
+            background: white;
+            border: none;
+            font-size: 1.1rem;
+            padding: 1rem 1.5rem;
+        }
+
+        .hero-search .search-btn {
+            background: var(--secondary-color);
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+        }
+
+        /* Quick Categories */
+        .quick-categories {
+            padding: 2rem 0;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .category-slider {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 1rem 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            justify-content: center;
+        }
+
+        .category-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 100px;
+            text-decoration: none;
+            color: #666;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .category-item:hover {
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .category-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .category-music { background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: white; }
+        .category-sports { background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; }
+        .category-theater { background: linear-gradient(135deg, #a8e6cf, #7fcdcd); color: white; }
+        .category-comedy { background: linear-gradient(135deg, #ffd93d, #ff6b6b); color: white; }
+        .category-business { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .category-food { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
+
+        .category-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* Featured Events */
+        .featured-section {
+            padding: 4rem 0;
+            background: var(--light-bg);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .event-image {
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            position: relative;
+        }
+
+        .event-date-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--secondary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .event-content {
+            padding: 1.5rem;
+        }
+
+        .event-category {
+            color: var(--primary-color);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+
+        .event-location {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .event-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .event-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+        .event-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .event-btn:hover {
+            background: #2e4a7f;
+            transform: scale(1.05);
+        }
+
+        /* Browse More Section */
+        .browse-section {
+            padding: 4rem 0;
+            background: white;
+        }
+
+        .browse-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 3rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .browse-card {
+            background: var(--light-bg);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .browse-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .browse-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .browse-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+
+        .browse-description {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        .main-footer {
+            background: var(--accent-color);
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+
+        .footer-section {
+            margin-bottom: 2rem;
+        }
+
+        .footer-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #555;
+            padding-top: 2rem;
+            text-align: center;
+            color: #ccc;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-main {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-bar {
+                max-width: 100%;
+                margin: 0;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .category-slider {
+                justify-content: center;
+            }
+
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading States */
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Utility Classes */
+        .text-primary { color: var(--primary-color) !important; }
+        .bg-primary { background: var(--primary-color) !important; }
+        .text-secondary { color: var(--secondary-color) !important; }
+        .bg-secondary { background: var(--secondary-color) !important; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-top">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>📧 support@ticketblaster.com | 📞 1-800-TICKETS</span>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-light"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="header-main">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="#" class="logo">
+                        <i class="fas fa-ticket-alt me-2"></i>TicketBlaster
+                    </a>
+                    
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="Search events, artists, venues..." id="mainSearch">
+                        <button class="search-btn" onclick="performSearch()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    
+                    <nav class="nav-links">
+                    </nav>
+                    
+                    <div class="user-actions">
+                        <a href="/login.html" class="btn btn-outline-primary">Log In</a>
+                        <a href="/register.html" class="btn btn-primary">Sign Up</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Find Your Next Event</h1>
+                <p class="hero-subtitle">
+                    Discover amazing concerts, sports events, theater shows, and more. 
+                    Join millions of people finding events they love.
+                </p>
+                <div class="hero-search">
+                    <div class="d-flex">
+                        <input type="text" class="search-input" placeholder="What are you looking for?" id="heroSearch">
+                        <button class="search-btn" onclick="performHeroSearch()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Categories -->
+    <section class="quick-categories">
+        <div class="container">
+            <div class="category-slider">
+                <div class="category-item" onclick="browseCategory('music')">
+                    <div class="category-icon category-music">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div class="category-name">Music</div>
+                </div>
+                <div class="category-item" onclick="browseCategory('sports')">
+                    <div class="category-icon category-sports">
+                        <i class="fas fa-football-ball"></i>
+                    </div>
+                    <div class="category-name">Sports</div>
+                </div>
+                <div class="category-item" onclick="browseCategory('theater')">
+                    <div class="category-icon category-theater">
+                        <i class="fas fa-theater-masks"></i>
+                    </div>
+                    <div class="category-name">Theater</div>
+                </div>
+                <div class="category-item" onclick="browseCategory('comedy')">
+                    <div class="category-icon category-comedy">
+                        <i class="fas fa-laugh"></i>
+                    </div>
+                    <div class="category-name">Comedy</div>
+                </div>
+                <div class="category-item" onclick="browseCategory('business')">
+                    <div class="category-icon category-business">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="category-name">Business</div>
+                </div>
+                <div class="category-item" onclick="browseCategory('food')">
+                    <div class="category-icon category-food">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="category-name">Food & Drink</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Events -->
+    <section class="featured-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Featured Events</h2>
+                <p class="section-subtitle">Don't miss these popular events happening near you</p>
+            </div>
+            
+            <div class="events-grid" id="featuredEvents">
+                <!-- Events will be loaded here -->
+            </div>
+            
+            <div class="text-center mt-4">
+                <button class="btn btn-primary btn-lg" onclick="viewAllEvents()">
+                    View All Events
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Browse More -->
+    <section class="browse-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Explore More</h2>
+                <p class="section-subtitle">Find exactly what you're looking for</p>
+            </div>
+            
+            <div class="browse-grid">
+                <div class="browse-card" onclick="window.location='/events.html'">
+                    <div class="browse-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3 class="browse-title">All Events</h3>
+                    <p class="browse-description">Browse our complete catalog of events</p>
+                </div>
+                
+                <div class="browse-card" onclick="window.location='/dashboard.html'">
+                    <div class="browse-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <h3 class="browse-title">My Account</h3>
+                    <p class="browse-description">Manage your tickets and preferences</p>
+                </div>
+                
+                <div class="browse-card" onclick="window.location='/create-event.html'">
+                    <div class="browse-icon">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <h3 class="browse-title">Create Event</h3>
+                    <p class="browse-description">Host your own event with ease</p>
+                </div>
+                
+                <div class="browse-card" onclick="window.location='/analytics.html'">
+                    <div class="browse-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="browse-title">Analytics</h3>
+                    <p class="browse-description">Track your event performance</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="footer-section">
+                        <h5 class="footer-title">TicketBlaster</h5>
+                        <p>The premier event discovery and ticketing platform connecting people with amazing experiences.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="footer-section">
+                        <h5 class="footer-title">For Customers</h5>
+                        <ul class="footer-links">
+                            <li><a href="/events.html">Browse Events</a></li>
+                            <li><a href="/categories.html">Categories</a></li>
+                            <li><a href="/dashboard.html">My Account</a></li>
+                            <li><a href="/orders.html">My Orders</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="footer-section">
+                        <h5 class="footer-title">For Organizers</h5>
+                        <ul class="footer-links">
+                            <li><a href="/create-event.html">Create Event</a></li>
+                            <li><a href="/analytics.html">Analytics</a></li>
+                            <li><a href="/pricing-discounts.html">Pricing Tools</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="footer-section">
+                        <h5 class="footer-title">Support & Legal</h5>
+                        <ul class="footer-links">
+                            <li><a href="/help.html">Help Center</a></li>
+                            <li><a href="/contact.html">Contact Us</a></li>
+                            <li><a href="/terms.html">Terms of Service</a></li>
+                            <li><a href="/privacy.html">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 TicketBlaster. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.min.js"></script>
+    <script src="/js/signalr-client.js"></script>
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFeaturedEvents();
+            setupEventListeners();
+        });
+
+        // Load featured events
+        async function loadFeaturedEvents() {
+            const container = document.getElementById('featuredEvents');
+            
+            try {
+                const response = await fetch('/api/events?limit=6');
+                if (response.ok) {
+                    const events = await response.json();
+                    displayEvents(events);
+                } else {
+                    displayDemoEvents();
+                }
+            } catch (error) {
+                console.error('Error loading events:', error);
+                displayDemoEvents();
+            }
+        }
+
+        // Display events
+        function displayEvents(events) {
+            const container = document.getElementById('featuredEvents');
+            
+            if (events.length === 0) {
+                container.innerHTML = '<div class="col-12 text-center"><p>No events available at the moment.</p></div>';
+                return;
+            }
+
+            const eventsHtml = events.map(event => createEventCard(event)).join('');
+            container.innerHTML = eventsHtml;
+        }
+
+        // Create event card HTML
+        function createEventCard(event) {
+            const eventDate = new Date(event.startDate);
+            const price = event.ticketTypes && event.ticketTypes.length > 0 
+                ? Math.min(...event.ticketTypes.map(t => t.price))
+                : 0;
+
+            return `
+                <div class="event-card" onclick="viewEvent(${event.eventId})">
+                    <div class="event-image">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div class="event-date-badge">
+                            ${eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </div>
+                    </div>
+                    <div class="event-content">
+                        <div class="event-category">${event.category?.name || 'Event'}</div>
+                        <h3 class="event-title">${event.title}</h3>
+                        <div class="event-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            ${event.location}
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                ${price > 0 ? `From $${price.toFixed(2)}` : 'Free'}
+                            </div>
+                            <button class="event-btn">
+                                Get Tickets
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Display demo events
+        function displayDemoEvents() {
+            const demoEvents = [
+                {
+                    eventId: 1,
+                    title: "Summer Music Festival 2024",
+                    startDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                    location: "Central Park, New York",
+                    category: { name: "Music" },
+                    ticketTypes: [{ price: 89.99 }]
+                },
+                {
+                    eventId: 2,
+                    title: "Tech Conference 2024",
+                    startDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+                    location: "Convention Center",
+                    category: { name: "Business" },
+                    ticketTypes: [{ price: 199.99 }]
+                },
+                {
+                    eventId: 3,
+                    title: "Comedy Night Live",
+                    startDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
+                    location: "Downtown Comedy Club",
+                    category: { name: "Comedy" },
+                    ticketTypes: [{ price: 35.00 }]
+                },
+                {
+                    eventId: 4,
+                    title: "Food & Wine Festival",
+                    startDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
+                    location: "Waterfront Park",
+                    category: { name: "Food" },
+                    ticketTypes: [{ price: 65.00 }]
+                },
+                {
+                    eventId: 5,
+                    title: "Basketball Championship",
+                    startDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
+                    location: "Madison Square Garden",
+                    category: { name: "Sports" },
+                    ticketTypes: [{ price: 150.00 }]
+                },
+                {
+                    eventId: 6,
+                    title: "Broadway Show",
+                    startDate: new Date(Date.now() + 42 * 24 * 60 * 60 * 1000),
+                    location: "Times Square Theater",
+                    category: { name: "Theater" },
+                    ticketTypes: [{ price: 120.00 }]
+                }
+            ];
+
+            displayEvents(demoEvents);
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search functionality
+            document.getElementById('mainSearch').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            document.getElementById('heroSearch').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performHeroSearch();
+                }
+            });
+        }
+
+        // Search functions
+        function performSearch() {
+            const query = document.getElementById('mainSearch').value.trim();
+            if (query) {
+                window.location.href = `/events.html?search=${encodeURIComponent(query)}`;
+            }
+        }
+
+        function performHeroSearch() {
+            const query = document.getElementById('heroSearch').value.trim();
+            if (query) {
+                window.location.href = `/events.html?search=${encodeURIComponent(query)}`;
+            }
+        }
+
+        // Navigation functions
+        function browseCategory(category) {
+            window.location.href = `/events.html?category=${category}`;
+        }
+
+        function viewEvent(eventId) {
+            window.location.href = `/simple-event.html?id=${eventId}`;
+        }
+
+        function viewAllEvents() {
+            window.location.href = '/events.html';
+        }
+    </script>
+</body>
+</html>

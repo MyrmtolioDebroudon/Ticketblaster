@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Complete Flow - TicketBlaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Test Complete Flow</h1>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Step 1: Login</h5>
+                        <p>You need to be logged in to proceed.</p>
+                        <div id="authStatus" class="alert alert-info">Checking...</div>
+                        <button class="btn btn-primary" onclick="goToLogin()">Login</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Step 2: Select Event</h5>
+                        <p>Choose an event and add tickets.</p>
+                        <button class="btn btn-primary" onclick="createRealOrderData()">Create Real Order Data</button>
+                        <button class="btn btn-secondary" onclick="goToSimpleEvent()">Go to Simple Event</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Step 3: Checkout</h5>
+                        <p>Complete your order.</p>
+                        <button class="btn btn-primary" onclick="goToSimpleCheckout()">Go to Simple Checkout</button>
+                        <button class="btn btn-secondary" onclick="goToRegularCheckout()">Go to Regular Checkout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Current Data</h5>
+                    <h6>Session Storage:</h6>
+                    <pre id="sessionData" class="bg-light p-3">No data</pre>
+                    <h6>Local Storage:</h6>
+                    <pre id="localData" class="bg-light p-3">No data</pre>
+                    <button class="btn btn-info" onclick="refreshData()">Refresh Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            refreshData();
+        });
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const authStatus = document.getElementById('authStatus');
+            
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    authStatus.innerHTML = `
+                        <div class="alert alert-success">
+                            ✅ Logged in as: ${payload.email}
+                        </div>
+                    `;
+                } catch (error) {
+                    authStatus.innerHTML = `
+                        <div class="alert alert-danger">
+                            ❌ Invalid token
+                        </div>
+                    `;
+                }
+            } else {
+                authStatus.innerHTML = `
+                    <div class="alert alert-warning">
+                        ⚠️ Not logged in
+                    </div>
+                `;
+            }
+        }
+
+        function refreshData() {
+            // Session storage
+            const sessionData = {};
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                sessionData[key] = sessionStorage.getItem(key);
+            }
+            document.getElementById('sessionData').textContent = JSON.stringify(sessionData, null, 2);
+
+            // Local storage  
+            const localData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                localData[key] = localStorage.getItem(key);
+            }
+            document.getElementById('localData').textContent = JSON.stringify(localData, null, 2);
+        }
+
+        function createRealOrderData() {
+            // Create order data exactly like the simple-event.html does
+            const orderData = {
+                eventId: 1,
+                tickets: [
+                    {
+                        type: 'General Admission',
+                        quantity: 2,
+                        price: 199.99
+                    }
+                ],
+                total: 399.98
+            };
+            
+            sessionStorage.setItem('orderData', JSON.stringify(orderData));
+            alert('Real order data created (matching simple-event.html format)');
+            refreshData();
+        }
+
+        function goToLogin() {
+            window.location.href = '/login.html';
+        }
+
+        function goToSimpleEvent() {
+            window.location.href = '/simple-event.html?id=1';
+        }
+
+        function goToSimpleCheckout() {
+            window.location.href = '/simple-checkout.html';
+        }
+
+        function goToRegularCheckout() {
+            window.location.href = '/checkout.html';
+        }
+    </script>
+</body>
+</html>

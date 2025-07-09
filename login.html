@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - TicketBlaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3d5a99;
+            --secondary-color: #f05537;
+            --accent-color: #39364f;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --dark-bg: #343a40;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-container {
+            max-width: 400px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .login-body {
+            padding: 30px;
+        }
+
+        .form-floating {
+            margin-bottom: 20px;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(61, 90, 153, 0.25);
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #dee2e6;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .social-login {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .social-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #495057;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .social-btn:hover {
+            background: var(--light-bg);
+            color: #495057;
+        }
+
+        .alert {
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .back-link {
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="login-container">
+                    <div class="login-header">
+                        <a href="/index.html" class="back-link">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Home
+                        </a>
+                        <i class="fas fa-ticket-alt fa-3x mb-3"></i>
+                        <h2>Welcome Back</h2>
+                        <p class="mb-0">Sign in to your TicketBlaster account</p>
+                    </div>
+                    <div class="login-body">
+                        <div id="alertContainer"></div>
+                        
+                        <form id="loginForm">
+                            <div class="form-floating">
+                                <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                                <label for="email">Email address</label>
+                            </div>
+                            
+                            <div class="form-floating">
+                                <input type="password" class="form-control" id="password" placeholder="Password" required>
+                                <label for="password">Password</label>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                                    <label class="form-check-label" for="rememberMe">
+                                        Remember me
+                                    </label>
+                                </div>
+                                <a href="/forgot-password.html" class="text-decoration-none">Forgot password?</a>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-login w-100 mb-3">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                Sign In
+                            </button>
+                        </form>
+                        
+                        <div class="divider">
+                            <span>or continue with</span>
+                        </div>
+                        
+                        <div class="social-login">
+                            <a href="#" class="social-btn" onclick="socialLogin('google')">
+                                <i class="fab fa-google"></i> Google
+                            </a>
+                            <a href="#" class="social-btn" onclick="socialLogin('facebook')">
+                                <i class="fab fa-facebook-f"></i> Facebook
+                            </a>
+                            <a href="#" class="social-btn" onclick="socialLogin('github')">
+                                <i class="fab fa-github"></i> GitHub
+                            </a>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p class="mb-0">Don't have an account? <a href="/register.html" class="text-decoration-none">Sign up</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Handle form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Store token and user info
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    if (rememberMe) {
+                        localStorage.setItem('rememberMe', 'true');
+                    }
+                    
+                    showAlert('success', 'Login successful! Redirecting...');
+                    
+                    // Redirect to dashboard or intended page
+                    setTimeout(() => {
+                        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/dashboard.html';
+                        window.location.href = redirectUrl;
+                    }, 1000);
+                } else {
+                    showAlert('danger', data.message || 'Login failed');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('danger', 'An error occurred during login. Please try again.');
+            }
+        });
+        
+        // Social login handler
+        function socialLogin(provider) {
+            showAlert('info', `${provider} login is not implemented yet. This is a demo feature.`);
+        }
+        
+        // Show alert
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+        
+        // Check if user is already logged in
+        window.addEventListener('load', function() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (token && user) {
+                // User is already logged in, redirect to dashboard
+                window.location.href = '/dashboard.html';
+            }
+            
+            // Check for remember me
+            const rememberMe = localStorage.getItem('rememberMe');
+            if (rememberMe === 'true') {
+                document.getElementById('rememberMe').checked = true;
+            }
+        });
+        
+        // Demo login credentials
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert('info', `
+                <strong>Demo Credentials:</strong><br>
+                🔧 Admin: admin@ticketblaster.com / admin123<br>
+                📋 Organizer: organizer@ticketblaster.com / organizer123<br>
+                👤 Customer: customer@ticketblaster.com / customer123<br>
+                🧪 Quick Test: test@test.com / test
+            `);
+        });
+
+        // Add quick login buttons
+        function addQuickLoginButtons() {
+            const form = document.getElementById('loginForm');
+            const quickLoginDiv = document.createElement('div');
+            quickLoginDiv.className = 'quick-login mb-3';
+            quickLoginDiv.innerHTML = `
+                <div class="text-center mb-2">
+                    <small class="text-muted">Quick Login:</small>
+                </div>
+                <div class="d-flex gap-1 flex-wrap justify-content-center">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="quickLogin('admin@ticketblaster.com', 'admin123')">Admin</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="quickLogin('organizer@ticketblaster.com', 'organizer123')">Organizer</button>
+                    <button type="button" class="btn btn-outline-success btn-sm" onclick="quickLogin('customer@ticketblaster.com', 'customer123')">Customer</button>
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="quickLogin('test@test.com', 'test')">Test</button>
+                </div>
+            `;
+            form.parentNode.insertBefore(quickLoginDiv, form.nextSibling);
+        }
+
+        function quickLogin(email, password) {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+        }
+
+        // Add quick login buttons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            addQuickLoginButtons();
+        });
+    </script>
+</body>
+</html>

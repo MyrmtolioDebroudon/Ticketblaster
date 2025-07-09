@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management - TicketBlaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .order-card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+        .order-card:hover {
+            transform: translateY(-2px);
+        }
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-confirmed { background-color: #d4edda; color: #155724; }
+        .status-completed { background-color: #d1ecf1; color: #0c5460; }
+        .status-cancelled { background-color: #f8d7da; color: #721c24; }
+        .status-refunded { background-color: #e2e3e5; color: #495057; }
+        .order-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .summary-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        .quick-actions {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .order-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #007bff;
+        }
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: -18px;
+            top: 15px;
+            width: 2px;
+            height: calc(100% - 10px);
+            background: #dee2e6;
+        }
+        .timeline-item:last-child::after {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/index.html">
+                <i class="fas fa-ticket-alt"></i> TicketBlaster
+            </a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/events.html">Events</a>
+                <a class="nav-link" href="/ticket-inventory.html">Inventory</a>
+                <a class="nav-link" href="/pricing-discounts.html">Pricing</a>
+                <a class="nav-link active" href="/orders.html">Orders</a>
+                <a class="nav-link" href="/categories.html">Categories</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Order Management</h1>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" onclick="refreshOrders()">
+                    <i class="fas fa-refresh"></i> Refresh
+                </button>
+                <button class="btn btn-primary" onclick="createTestOrder()">
+                    <i class="fas fa-plus"></i> Create Test Order
+                </button>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="order-summary">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="summary-item">
+                        <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+                        <h3 id="totalOrders">0</h3>
+                        <p class="mb-0">Total Orders</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="summary-item">
+                        <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                        <h3 id="totalRevenue">$0</h3>
+                        <p class="mb-0">Total Revenue</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="summary-item">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <h3 id="completedOrders">0</h3>
+                        <p class="mb-0">Completed</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="summary-item">
+                        <i class="fas fa-clock fa-2x mb-2"></i>
+                        <h3 id="pendingOrders">0</h3>
+                        <p class="mb-0">Pending</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="statusFilter" class="form-label">Filter by Status</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Refunded">Refunded</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="eventFilter" class="form-label">Filter by Event</label>
+                    <select class="form-select" id="eventFilter">
+                        <option value="">All Events</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary" onclick="applyFilters()">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders List -->
+        <div id="ordersContainer">
+            <div class="text-center py-5">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p class="mt-2">Loading orders...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal fade" id="orderModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Order Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div id="orderDetails">
+                                <!-- Order details will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>Order Timeline</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="order-timeline" id="orderTimeline">
+                                        <!-- Timeline will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" onclick="confirmOrder()" id="confirmBtn" style="display: none;">
+                        <i class="fas fa-check"></i> Confirm Order
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="cancelOrder()" id="cancelBtn" style="display: none;">
+                        <i class="fas fa-times"></i> Cancel Order
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="refundOrder()" id="refundBtn" style="display: none;">
+                        <i class="fas fa-undo"></i> Refund Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allOrders = [];
+        let filteredOrders = [];
+        let allEvents = [];
+        let currentOrderId = null;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEvents();
+            loadOrders();
+            loadOrderSummary();
+        });
+
+        // Load events for filter dropdown
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/events');
+                allEvents = await response.json();
+                
+                const eventFilter = document.getElementById('eventFilter');
+                eventFilter.innerHTML = '<option value="">All Events</option>';
+                
+                allEvents.forEach(event => {
+                    const option = document.createElement('option');
+                    option.value = event.eventId;
+                    option.textContent = event.title;
+                    eventFilter.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        // Load orders
+        async function loadOrders() {
+            try {
+                const response = await fetch('/api/orders');
+                allOrders = await response.json();
+                filteredOrders = [...allOrders];
+                
+                displayOrders();
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                displayError('Failed to load orders');
+            }
+        }
+
+        // Load order summary
+        async function loadOrderSummary() {
+            try {
+                const response = await fetch('/api/orders/summary');
+                const summary = await response.json();
+                
+                document.getElementById('totalOrders').textContent = summary.totalOrders;
+                document.getElementById('totalRevenue').textContent = `$${summary.totalRevenue.toFixed(2)}`;
+                
+                const completedCount = summary.summary.find(s => s.status === 'Completed')?.count || 0;
+                const pendingCount = summary.summary.find(s => s.status === 'Pending')?.count || 0;
+                
+                document.getElementById('completedOrders').textContent = completedCount;
+                document.getElementById('pendingOrders').textContent = pendingCount;
+                
+            } catch (error) {
+                console.error('Error loading order summary:', error);
+            }
+        }
+
+        // Display orders
+        function displayOrders() {
+            const container = document.getElementById('ordersContainer');
+            
+            if (filteredOrders.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                        <h3>No orders found</h3>
+                        <p class="text-muted">Try adjusting your filters or create a test order.</p>
+                        <button class="btn btn-primary" onclick="createTestOrder()">Create Test Order</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const ordersHtml = filteredOrders.map(order => {
+                const event = allEvents.find(e => e.eventId === order.eventId);
+                const itemCount = order.orderItems?.length || 0;
+                const totalQuantity = order.orderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+                
+                return `
+                    <div class="order-card">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h5 class="card-title">${order.orderNumber}</h5>
+                                                <p class="text-muted mb-1">${event?.title || 'Unknown Event'}</p>
+                                                <p class="text-muted mb-0">
+                                                    <i class="fas fa-user"></i> ${order.customerFirstName} ${order.customerLastName}
+                                                    <span class="mx-2">|</span>
+                                                    <i class="fas fa-envelope"></i> ${order.customerEmail}
+                                                </p>
+                                            </div>
+                                            <span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <small class="text-muted">Order Date:</small>
+                                                <div>${formatDateTime(order.orderDate)}</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small class="text-muted">Items:</small>
+                                                <div>${itemCount} types (${totalQuantity} tickets)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4">
+                                        <div class="text-end">
+                                            <h4 class="text-primary mb-2">$${order.totalAmount.toFixed(2)}</h4>
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <button class="btn btn-sm btn-outline-primary" onclick="viewOrder(${order.orderId})">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                                ${order.status === 'Pending' ? `
+                                                    <button class="btn btn-sm btn-success" onclick="payWithStripe(${order.orderId})">
+                                                        <i class="fas fa-credit-card"></i> Pay Now
+                                                    </button>
+                                                ` : ''}
+                                                ${order.status === 'Pending' ? `
+                                                    <button class="btn btn-sm btn-outline-success" onclick="quickConfirm(${order.orderId})">
+                                                        <i class="fas fa-check"></i> Confirm
+                                                    </button>
+                                                ` : ''}
+                                                ${order.status === 'Pending' ? `
+                                                    <button class="btn btn-sm btn-danger" onclick="quickCancel(${order.orderId})">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = ordersHtml;
+        }
+
+        // View order details
+        async function viewOrder(orderId) {
+            try {
+                const response = await fetch(`/api/orders/${orderId}`);
+                const order = await response.json();
+                currentOrderId = orderId;
+                
+                const event = allEvents.find(e => e.eventId === order.eventId);
+                
+                const orderDetailsHtml = `
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Order Information</h6>
+                            <p><strong>Order Number:</strong> ${order.orderNumber}</p>
+                            <p><strong>Event:</strong> ${event?.title || 'Unknown Event'}</p>
+                            <p><strong>Status:</strong> <span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span></p>
+                            <p><strong>Order Date:</strong> ${formatDateTime(order.orderDate)}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Customer Information</h6>
+                            <p><strong>Name:</strong> ${order.customerFirstName} ${order.customerLastName}</p>
+                            <p><strong>Email:</strong> ${order.customerEmail}</p>
+                            <p><strong>Phone:</strong> ${order.customerPhone || 'N/A'}</p>
+                            <p><strong>Address:</strong> ${order.billingAddress || 'N/A'}</p>
+                        </div>
+                    </div>
+                    
+                    <h6>Order Items</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Ticket Type</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Discount</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${order.orderItems.map(item => `
+                                    <tr>
+                                        <td>${item.ticketType.name}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>$${item.unitPrice.toFixed(2)}</td>
+                                        <td>${item.discountAmount > 0 ? `-$${item.discountAmount.toFixed(2)}` : '-'}</td>
+                                        <td>$${item.totalPrice.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Payment Information</h6>
+                            ${order.payments && order.payments.length > 0 ? order.payments.map(payment => `
+                                <div class="mb-2">
+                                    <strong>Payment:</strong> $${payment.amount.toFixed(2)} (${payment.status})
+                                    <br><small>Method: ${payment.paymentMethod} | ID: ${payment.transactionId || 'Pending'}</small>
+                                </div>
+                            `).join('') : '<p class="text-muted">No payments recorded</p>'}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Order Summary</h6>
+                            <div class="d-flex justify-content-between"><span>Subtotal:</span><span>$${order.subTotal.toFixed(2)}</span></div>
+                            <div class="d-flex justify-content-between"><span>Tax:</span><span>$${order.taxAmount.toFixed(2)}</span></div>
+                            <div class="d-flex justify-content-between"><span>Service Fee:</span><span>$${order.serviceFee.toFixed(2)}</span></div>
+                            <div class="d-flex justify-content-between"><span>Discount:</span><span>-$${order.discountAmount.toFixed(2)}</span></div>
+                            <hr>
+                            <div class="d-flex justify-content-between"><strong>Total:</strong><strong>$${order.totalAmount.toFixed(2)}</strong></div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('orderDetails').innerHTML = orderDetailsHtml;
+                
+                // Update timeline
+                updateOrderTimeline(order);
+                
+                // Update action buttons
+                updateActionButtons(order.status);
+                
+                new bootstrap.Modal(document.getElementById('orderModal')).show();
+                
+            } catch (error) {
+                console.error('Error loading order details:', error);
+                alert('Failed to load order details');
+            }
+        }
+
+        // Update order timeline
+        function updateOrderTimeline(order) {
+            const timeline = document.getElementById('orderTimeline');
+            const timelineItems = [
+                { status: 'Pending', date: order.orderDate, label: 'Order Created' },
+                { status: 'Confirmed', date: order.modifiedOn, label: 'Order Confirmed' },
+                { status: 'Completed', date: order.modifiedOn, label: 'Order Completed' }
+            ];
+            
+            const timelineHtml = timelineItems.map(item => {
+                const isActive = getOrderStatusPriority(order.status) >= getOrderStatusPriority(item.status);
+                return `
+                    <div class="timeline-item ${isActive ? 'text-primary' : 'text-muted'}">
+                        <div class="fw-bold">${item.label}</div>
+                        <div class="small">${isActive ? formatDateTime(item.date) : 'Pending'}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            timeline.innerHTML = timelineHtml;
+        }
+
+        // Update action buttons based on order status
+        function updateActionButtons(status) {
+            const confirmBtn = document.getElementById('confirmBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const refundBtn = document.getElementById('refundBtn');
+            
+            // Hide all buttons first
+            [confirmBtn, cancelBtn, refundBtn].forEach(btn => btn.style.display = 'none');
+            
+            // Show appropriate buttons based on status
+            if (status === 'Pending') {
+                confirmBtn.style.display = 'inline-block';
+                cancelBtn.style.display = 'inline-block';
+            } else if (status === 'Confirmed' || status === 'Completed') {
+                refundBtn.style.display = 'inline-block';
+            }
+        }
+
+        // Payment with Stripe
+        function payWithStripe(orderId) {
+            window.location.href = `/stripe-payment.html?orderId=${orderId}`;
+        }
+
+        // Quick confirm order
+        async function quickConfirm(orderId) {
+            if (confirm('Are you sure you want to confirm this order?')) {
+                await updateOrderStatus(orderId, 'Confirmed');
+            }
+        }
+
+        // Quick cancel order
+        async function quickCancel(orderId) {
+            if (confirm('Are you sure you want to cancel this order?')) {
+                await updateOrderStatus(orderId, 'Cancelled');
+            }
+        }
+
+        // Modal action functions
+        async function confirmOrder() {
+            await updateOrderStatus(currentOrderId, 'Confirmed');
+            bootstrap.Modal.getInstance(document.getElementById('orderModal')).hide();
+        }
+
+        async function cancelOrder() {
+            if (confirm('Are you sure you want to cancel this order?')) {
+                await updateOrderStatus(currentOrderId, 'Cancelled');
+                bootstrap.Modal.getInstance(document.getElementById('orderModal')).hide();
+            }
+        }
+
+        async function refundOrder() {
+            if (confirm('Are you sure you want to refund this order?')) {
+                await updateOrderStatus(currentOrderId, 'Refunded');
+                bootstrap.Modal.getInstance(document.getElementById('orderModal')).hide();
+            }
+        }
+
+        // Update order status
+        async function updateOrderStatus(orderId, status) {
+            try {
+                const response = await fetch(`/api/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(status)
+                });
+
+                if (response.ok) {
+                    await loadOrders();
+                    await loadOrderSummary();
+                    alert(`Order ${status.toLowerCase()} successfully!`);
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                alert('Failed to update order status');
+            }
+        }
+
+        // Create test order
+        async function createTestOrder() {
+            try {
+                // Get first event and ticket type
+                const eventsResponse = await fetch('/api/events');
+                const events = await eventsResponse.json();
+                
+                if (events.length === 0) {
+                    alert('Please create an event first');
+                    return;
+                }
+                
+                const ticketsResponse = await fetch('/api/tickettypes');
+                const tickets = await ticketsResponse.json();
+                
+                if (tickets.length === 0) {
+                    alert('Please create ticket types first');
+                    return;
+                }
+                
+                const orderData = {
+                    userId: 1,
+                    eventId: events[0].eventId,
+                    customerEmail: 'test@example.com',
+                    customerFirstName: 'Test',
+                    customerLastName: 'Customer',
+                    customerPhone: '555-0123',
+                    billingAddress: '123 Test Street, Test City, TC 12345',
+                    taxAmount: 5.00,
+                    serviceFee: 2.50,
+                    discountAmount: 0,
+                    orderItems: [
+                        {
+                            ticketTypeId: tickets[0].ticketTypeId,
+                            quantity: 2,
+                            discountAmount: 0
+                        }
+                    ]
+                };
+                
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                if (response.ok) {
+                    await loadOrders();
+                    await loadOrderSummary();
+                    alert('Test order created successfully!');
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error creating test order:', error);
+                alert('Failed to create test order');
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const eventFilter = document.getElementById('eventFilter').value;
+
+            filteredOrders = allOrders.filter(order => {
+                if (statusFilter && order.status !== statusFilter) return false;
+                if (eventFilter && order.eventId != eventFilter) return false;
+                return true;
+            });
+
+            displayOrders();
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('eventFilter').value = '';
+            filteredOrders = [...allOrders];
+            displayOrders();
+        }
+
+        // Refresh orders
+        function refreshOrders() {
+            loadOrders();
+            loadOrderSummary();
+        }
+
+        // Utility functions
+        function formatDateTime(dateString) {
+            return new Date(dateString).toLocaleString();
+        }
+
+        function getOrderStatusPriority(status) {
+            const priorities = {
+                'Pending': 1,
+                'Confirmed': 2,
+                'Completed': 3,
+                'Cancelled': 0,
+                'Refunded': 0
+            };
+            return priorities[status] || 0;
+        }
+
+        function displayError(message) {
+            const container = document.getElementById('ordersContainer');
+            container.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> ${message}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
